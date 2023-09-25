@@ -1,0 +1,39 @@
+---
+title: Angular - Zero to Hero
+description: Get started building your docs site with Starlight.
+template: splash
+hero:
+  tagline: Congrats on coming so far. Let's get started!
+  image:
+    file: ../../assets/angular.png
+  actions:
+    - text: Santosh Yadav
+      link: https://twitter.com/SantoshYadavDev
+      icon: external
+    - text: Muhammad Ahsan Ayaz
+      link: https://twitter.com/codewith_ahsan
+      icon: external
+    - text: Start here
+      link: /guides/angular-cli/
+      icon: right-arrow
+      variant: primary
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+
+## What will you learn
+
+<CardGrid stagger>
+  <Card title="Angular CLI" icon="forward-slash">
+    Learn Angular CLI and the most helpful commands
+  </Card>
+  <Card title="Firebase Cloud Firestore" icon="add-document">
+    One of the most popular cloud databases that is easy to work with
+  </Card>
+  <Card title="Signal based components" icon="random">
+    Angular's new reactive paradigm <br/>(currently in developer preview)
+  </Card>
+  <Card title="API calls & routing" icon="external">
+    Making API calls in Angular and handling dynamic & lazy routes
+  </Card>
+</CardGrid>
