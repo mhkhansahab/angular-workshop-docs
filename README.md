@@ -1,13 +1,11 @@
-# Starlight Starter Kit: Basics
+# Workshop: Angular - Zero to Hero
 
 ```
-npm create astro@latest -- --template starlight
+git clone https://github.com/DevSlam-2023-Angular/angular-workshop-docs
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/starlight/tree/main/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/starlight/tree/main/examples/basics)
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/DevSlam-2023-Angular/angular-workshop-docs)
+[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/DevSlam-2023-Angular/angular-workshop-docs)
 
 ## 🚀 Project Structure
 
