@@ -15,6 +15,8 @@ export default defineConfig({
           items: [
             // Each item here is one entry in the navigation menu.
             { label: "Angular CLI", link: "/guides/angular-cli/" },
+            { label: "Set up Tailwind CSS", link: "/guides/tailwind-css/" },
+            { label: "Angular Routing", link: "/guides/routing/" },
           ],
         },
         {
