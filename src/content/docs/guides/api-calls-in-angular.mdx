@@ -69,7 +69,7 @@ We will create an `interface` for the data type we're going to use. I.e. for fli
   </TabItem>
 </Tabs>
 
-Now that we have the types
+Now that we have the types, let's update the content of our Flight service so we can make the API call and use these types.
 
 <Tabs>
   <TabItem label="src/app/services/flight.service.ts">
@@ -83,15 +83,54 @@ Now that we have the types
   })
   export class FlightService {
     http = inject(HttpClient); /* 👈🏽 add this */
-
+  
     getData() {  /* 👈🏽 add this */
       return this.http.get<{
         AIRLINES: IAirline[],
         FLIGHTS: IFlight[]
-      }>('WORKSHOP_GITHUB_REPO/public/data.json')
+      }>('https://raw.githubusercontent.com/DevSlam-2023-Angular/angular-workshop-docs/main/public/data.json')
+    }
+  }
+  ```
+  </TabItem>
+</Tabs>
+
+
+Now that we have the function to make our HTTP call implemented, let's use it in the Home component when the page/component loads.
+Update the `home.component.ts` file as follows:
+
+<Tabs>
+  <TabItem label="src/app/home/home.component.ts">
+  ```ts
+  import { Component, OnInit, inject  } from '@angular/core'; /* 👈🏽 add this */
+  import { CommonModule } from '@angular/common';
+  import { FlightService } from '../services/flight.service'; /* 👈🏽 add this */
+
+  @Component({
+    selector: 'app-home',
+    standalone: true,
+    imports: [CommonModule],
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.scss']
+  })
+  export class HomeComponent implements OnInit {
+    flightService = inject(FlightService); /* 👈🏽 add this */
+
+    ngOnInit(): void { /* 👈🏽 add this */
+      this.flightService.getData()
+        .subscribe({
+          next: (response) => {
+            console.log('response from the API', response)
+          },
+          error: (err) => {
+            console.log('Something went wrong', err);
+          }
+        });
     }
   }
 
   ```
   </TabItem>
 </Tabs>
+
+Once you've implemented this, go to the home page, open the devtools to see the data in the console.
