@@ -1,0 +1,88 @@
+---
+title: Angular Signals
+description: Creating the flight card component
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Signals are a new set of APIs from the Angular team (currently in developer preview) which comes with a lot of improvements when it comes to the reactive paradigm of managing state along with improved performance and change detection strategy.
+
+We will create a Flight Card component using the following command in the terminal:
+
+
+```bash
+ng g c components/flight-card
+```
+
+Once the files for the Flight Card component are created, update them as follows:
+
+
+<Tabs>
+	<TabItem label="flight-card.component.html">
+  ```html
+    <article
+      class="flex items-center py-1 w-full min-h-44 hover:animate-background rounded-xl bg-gradient-to-r from-green-300 via-blue-500 to-purple-600 p-0.5 shadow-xl transition hover:bg-[length:400%_400%] hover:shadow-sm hover:[animation-duration:_4s]">
+      <div class="h-full rounded-[10px] bg-white dark:bg-slate-800 dark:text-white p-4 sm:p-6 flex justify-between gap-8 flex-1 flex-col items-center">
+        <img class="w-24 h-24 rounded-full object-cover" src="{{flightItem.details.image}}">
+        <div class="gap-8 flex-1 items-center flex">
+          <div>
+            <time datetime="2022-10-10" class="block text-xs">
+              {{flightItem.details.date | date : 'short'}}
+            </time>
+            <a href="#">
+              <h3 class="mt-0.5 text-lg font-medium">
+                {{flightItem.details.airline}}
+              </h3>
+            </a>
+          </div>
+
+          <hr class="border-l border-gray-300 w-[1px] block h-20">
+
+          <div class="from flex gap-4 text-center flex-1 items-center sm:max-w-sm">
+            <div class="from-to flex flex-col gap-4 text-center">
+              <h4>{{flightItem.details.origin.code}}</h4>
+              <h5>{{flightItem.details.origin.city}}, {{flightItem.details.origin.country}}</h5>
+            </div>
+
+            <hr class="border-t-2 min-w-[100px] border-gray-600 flex-1 overflow-visible relative before:absolute before:right-[2px] before:bottom-[-9px] before:border-t-2 before:border-gray-500 before:rotate-45 before:block before:w-[20px] before:h-[20px] after:absolute after:border-b-2 after:border-gray-500 after:right-[2px] after:bottom-[-9px] after:-rotate-45 after:block after:w-[20px] after:h-[20px] ">
+
+            <div class="from-to flex flex-col gap-4 text-center">
+              <h4>{{flightItem.details.destination.code}}</h4>
+              <h5>{{flightItem.details.destination.city}}, {{flightItem.details.origin.country}}</h5>
+            </div>
+          </div>
+
+          <hr class="border-l border-gray-300 w-[1px] block h-20">
+
+          <div class="from flex flex-col gap-4 text-center items-center sm:max-w-md">
+            <div class="from-to flex flex-col gap-4 text-center">
+              <h4>Flight No: {{flightItem.details.flightNumber}}</h4>
+              <h5>Duration: {{flightItem.details.flightLength}}h</h5>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </article>
+  ```
+  </TabItem>
+	<TabItem label="flight-card.component.ts">
+  ```ts
+  import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+  import { CommonModule } from '@angular/common';
+  import { IFlight } from 'src/app/types-and-interfaces';
+
+  @Component({
+    selector: 'app-flight-card',
+    standalone: true,
+    imports: [CommonModule],
+    templateUrl: './flight-card.component.html',
+    styleUrls: ['./flight-card.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
+  })
+  export class FlightCardComponent {
+    @Input() flightItem!: IFlight;
+  }
+
+  ```
+  </TabItem>
+</Tabs>

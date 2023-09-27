@@ -17,6 +17,14 @@ export default defineConfig({
             { label: "Angular CLI", link: "/guides/angular-cli/" },
             { label: "Set up Tailwind CSS", link: "/guides/tailwind-css/" },
             { label: "Angular Routing", link: "/guides/routing/" },
+            {
+              label: "API calls in Angular",
+              link: "/guides/api-calls-in-angular/",
+            },
+            {
+              label: "Angular Signals",
+              link: "/guides/angular-signals/",
+            },
           ],
         },
         {
