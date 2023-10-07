@@ -127,67 +127,6 @@ You can now delete ❌ the `app.module.ts` since we don't need it anymore.
 
 ## Favorite Flights with Firestore
 
-We will use Firebase's Firestore database to mark flights as favorite or not. Let's start by creating a component for the page. We will also update the routes to add the route and the header to add the link to the route as well.
-
-```bash
-ng g c favorite-flights
-```
-
-<Tabs>
-  <TabItem label="app.routes.ts">
-  ```ts
-  hlconfig 15-21
-  import { Routes } from '@angular/router';
-
-  export const routes: Routes = [{
-    path: 'home',
-    loadComponent: async () => {
-      const mod = await import('./home/home.component');
-      return mod.HomeComponent;
-    }
-  }, {
-    path: 'about',
-    loadComponent: async () => {
-      const mod = await import('./about/about.component');
-      return mod.AboutComponent;
-    }
-  }, {
-    path: 'favorites',
-    loadComponent: async () => {
-      const mod = await import('./favorite-flights/favorite-flights.component');
-      return mod.FavoriteFlightsComponent;
-    }
-  }, {
-    path: '',
-    pathMatch: 'full',
-    redirectTo: 'home'
-  }];
-
-  ```
-  </TabItem>
-  <TabItem label="header.component.html">
-  ```html
-  hlconfig 8
-  <header>
-    <div>
-      <div>
-      <!-- leave everything as it is -->
-        <div class="flex gap-4 items-center text-slate-900 dark:text-white">
-          <a class="hover:underline hover:underline-offset-4 hover:text-slate-600 dark:hover:text-slate-500" routerLink="/home">Home</a>
-          <a class="hover:underline hover:underline-offset-4 hover:text-slate-600 dark:hover:text-slate-500" routerLink="/about">About</a>
-          <a class="hover:underline hover:underline-offset-4 hover:text-slate-600 dark:hover:text-slate-500" routerLink="/favorites">Favorites</a>
-        </div>
-      </div>
-    </div>
-  </header>
-  ```
-  </TabItem>
-</Tabs>
-
-You should be able to see the Favorite Flights link in the header and should be able to navigate to it. Let's add some code to in the home component to mark flights as favorite.
-
-### Marking flights as favorite
-
 To mark the flights as favorite or not, we will use Firestore to just keep the IDs of the favorite flights since we don't want to duplicate the flights data.
 This is how the psuedo code looks like for the favorite flights functionality:
 ```text
@@ -197,10 +136,231 @@ This is how the psuedo code looks like for the favorite flights functionality:
 -- If it does contain the flight ID, show a heart icon on the right side of the flight card to indicate it as favorite.
 ```
 
+Let's start with updating the home component to inject the Firestore service as folows:
+
 <Tabs>
   <TabItem label="home.component.ts">
+  ```ts
+  hlconfig 6,18
+  import { Component, OnInit, Signal, computed, inject, signal } from '@angular/core';
+  import { CommonModule } from '@angular/common';
+  import { FlightService } from '../services/flight.service';
+  import { IFlight } from '../types';
+  import { FlightCardComponent } from '../components/flight-card/flight-card.component';
+  import { Firestore } from '@angular/fire/firestore';
+
+  @Component({
+    // ...1
+  })
+  export class HomeComponent implements OnInit {
+    flightService = inject(FlightService);
+    flights = signal<IFlight[]>([]);
+    filteredFlights: Signal<IFlight[]> = computed(() => {
+      // ...
+    });
+
+    firestore = inject(Firestore);
+    favoriteFlights = signal<Record<string, boolean>>({});
+
+    // ...
+  }
+
+  ```
   </TabItem>
 </Tabs>
 
+Now we will add a function to mark/unmark a flight as favorite. For this, we will create a `Record<string, string>` to keep
+all the favorited flight ids in the Record so we can reference that in the template. This is much performant for our use case
+compared to having an array of favorited flights, or even an array of IDs of the flights.
+
+<Tabs>
+  <TabItem label="home.component.ts">
+  ```ts
+  hlconfig 3,4,17,27-47
+  // ...
+  import { FlightCardComponent } from '../components/flight-card/flight-card.component';
+  import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+  import { deleteDoc } from 'firebase/firestore';
+
+  @Component({
+    // ...
+  })
+  export class HomeComponent implements OnInit {
+    flightService = inject(FlightService);
+    flights = signal<IFlight[]>([]);
+    filteredFlights: Signal<IFlight[]> = computed(() => {
+      // ...
+    });
+
+    firestore = inject(Firestore);
+    favoriteFlights = signal<Record<string, boolean>>({});
+
+    isMatchingFlight(searchTerm: string, flight: IFlight) {
+      // ...
+    }
+
+    ngOnInit(): void {
+      // ...
+    }
+
+    async toggleFlightAsFavorite(flight: IFlight) {
+      const docRef = doc(this.firestore, `favorites/${flight.id}`)
+      const document = await getDoc(docRef);
+      const favFlights = {
+        ...this.favoriteFlights()
+      }
+      if (document.exists()) {
+        await deleteDoc(docRef);
+        delete favFlights[flight.id];
+      } else {
+        /**
+         * We are just adding the `id` of the flight in firestore,
+         * feel free to add more properties
+         */
+        setDoc(docRef, {
+          id: flight.id
+        });
+        favFlights[flight.id] = true;
+      }
+      this.favoriteFlights.set({ ...favFlights });
+    }
+  }
+  ```
+  </TabItem>
+  <TabItem label="home.component.html">
+  ```html
+  hlconfig 3-7
+  <div class="container">
+    <section class="flex flex-col gap-8">
+      <app-flight-card (click)="toggleFlightAsFavorite(flight)" *ngFor="let flight of filteredFlights()" [flightItem]="flight">
+        <svg *ngIf="favoriteFlights()[flight.id]" width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+          <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402m5.726-20.583c-2.203 0-4.446 1.042-5.726 3.238-1.285-2.206-3.522-3.248-5.719-3.248-3.183 0-6.281 2.187-6.281 6.191 0 4.661 5.571 9.429 12 15.809 6.43-6.38 12-11.148 12-15.809 0-4.011-3.095-6.181-6.274-6.181"/>
+        </svg>
+      </app-flight-card>
+    </section>
+  </div>
+
+  ```
+  </TabItem>
+</Tabs>
+
+With the above changes, if you click any flight card, you should be able to see them marked as favorited having a heart icon on the right side of the card.
+And if you click the card again, you can see it being unmarked as favorite. And you can inspect the `toggleFlightAsFavorite()` method to see the implementation.
+Notice how we're creating a shallow copy of the `this.favoriteFlights` signal's value into a local `favFlights` object to update the object manually after
+marking or unmarking as favorite. This will change in a later step.
+
+:::tip
+As you mark/unmark a flight as favorite, check the firestore database to see the documents being created and deleted from it.
+:::
+
+There is one issue at the moment ⚠️. And that is if you refresh the page, you can not see your favorited flights anymore. However, since they are already
+in the database, if you try to mark an existing marked flight, you will see no change on the flight card (since it is already marked) and if you click it one
+more time, then you can see the change. To fix this, we will get the favorited flights from firebase on page load. Update the home component files as follows:
+
+<Tabs>
+  <TabItem label="home.component.ts">
+  ```ts
+  hlconfig 3,29-36,39-54
+  // ...
+  import { FlightCardComponent } from '../components/flight-card/flight-card.component';
+  import { Firestore, collection, collectionData, doc, getDoc, setDoc } from '@angular/fire/firestore';
+  import { deleteDoc } from 'firebase/firestore';
+
+  @Component({
+    // ...
+  })
+  export class HomeComponent implements OnInit {
+    flightService = inject(FlightService);
+    flights = signal<IFlight[]>([]);
+    filteredFlights: Signal<IFlight[]> = computed(() => {
+      // ...
+    });
+
+    firestore = inject(Firestore);
+    favoriteFlights = signal<Record<string, boolean>>({});
+
+    isMatchingFlight(searchTerm: string, flight: IFlight) {
+      // ...
+    }
+
+    ngOnInit(): void {
+      this.flightService.getData()
+        .subscribe({
+          // ...
+        });
+
+      collectionData(collection(this.firestore, 'favorites'))
+        .subscribe((data) => {
+          const favFlights: Record<string, boolean> = {};
+          data.forEach(doc => {
+            favFlights[(doc as IFlight).id] = true;
+          })
+          this.favoriteFlights.set(favFlights);
+        })
+    }
+
+    async toggleFlightAsFavorite(flight: IFlight) {
+      const docRef = doc(this.firestore, `favorites/${flight.id}`)
+      const document = await getDoc(docRef);
+      if (document.exists()) {
+        await deleteDoc(docRef);
+      } else {
+        /**
+        * We are just adding the `id` of the flight in firestore,
+        * feel free to add more properties
+        */
+        setDoc(docRef, {
+          id: flight.id
+        });
+      }
+      this.favoriteFlights.set({ ...favFlights });
+    }
+  }
+  ```
+  </TabItem>
+</Tabs>
+
+:::note
+Note that we've modified the `toggleFlightAsFavorite` function as well to remove manually updating the `this.favoriteFlights` signal
+as we now are listening to the `collectionData` which automatically updates the signal for us.
+:::
+
+With the above change, you can now mark/unmark flights as favorite, and even if you refresh the page, you will still see them as favorited as
+we load the favorited flights from Firestore on page load.
+
+Yayy 🎉 You've successfully build your first Angular application with HTTP calls, Signals, and Firebase Firestore.
+
+
+## Deploying the app
+
+It is now time to deploy the application. Run the following command to deploy the Angular app.
+
+
+```bash
+ng deploy
+```
+
+You should be able to see the logs for the Angular app being build and deployed as follows:
+```bash
+=== Deploying to 'ng-flight-scanner'...
+
+i  deploying hosting
+i  hosting[ng-flight-scanner]: beginning deploy...
+i  hosting[ng-flight-scanner]: found 10 files in .firebase\ng-flight-scanner\hosting
+i  hosting: uploading new files [1/2] (50%)
+i  hosting: upload complete
++  hosting[ng-flight-scanner]: file upload complete
+i  hosting[ng-flight-scanner]: finalizing version...
++  hosting[ng-flight-scanner]: version finalized
+i  hosting[ng-flight-scanner]: releasing new version...
++  hosting[ng-flight-scanner]: release complete
+
++  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/ng-flight-scanner/overview
+Hosting URL: https://ng-flight-scanner.web.app
+```
+
+Great 🚀 That is it! Hope you enjoyed the workshop. We'd love to have your feedback at _PULSECHECKER LINK_HERE_.
 
 <Highlight />
