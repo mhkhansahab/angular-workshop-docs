@@ -25,6 +25,10 @@ export default defineConfig({
               label: "Angular Signals",
               link: "/guides/angular-signals/",
             },
+            {
+              label: "Firebase: Firestore & Hosting",
+              link: "/guides/flying-with-firebase/",
+            },
           ],
         },
         {
@@ -32,6 +36,6 @@ export default defineConfig({
           autogenerate: { directory: "reference" },
         },
       ],
-    }),
+    })
   ],
 });

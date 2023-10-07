@@ -1,0 +1,50 @@
+<script>
+  if (typeof window !== "undefined") {
+    const codeSnippets = document.querySelectorAll("pre code");
+    codeSnippets.forEach((el) => {
+      const lineElements = el.querySelectorAll(
+        "span.line",
+      ) as NodeListOf<HTMLSpanElement>;
+
+      let linesToHighlight: number[] = [];
+      let shouldHighlight = false;
+      // Parse hlconfig and get lines to highlight
+      for (const lineElement of lineElements) {
+        const textContent = lineElement.textContent?.trim();
+        if (textContent?.startsWith("hlconfig")) {
+          shouldHighlight = true;
+          console.log("set to true");
+          const config = textContent.split(" ")[1];
+          const parts = config.split(",");
+
+          for (const part of parts) {
+            if (part.includes("-")) {
+              const [start, end] = part.split("-").map(Number);
+              for (let i = start; i <= end; i++) {
+                linesToHighlight.push(i);
+              }
+            } else {
+              linesToHighlight.push(Number(part));
+            }
+          }
+
+          // Remove the hlconfig line
+          lineElement.remove();
+          break; // Exit the loop once hlconfig is found and processed
+        }
+      }
+
+      if (shouldHighlight) {
+        console.log({ shouldHighlight });
+        lineElements.forEach((lineElement, index) => {
+          if (linesToHighlight.includes(index)) {
+            lineElement.classList.add("highlight");
+            lineElement.style.opacity = "1";
+          } else {
+            lineElement.style.opacity = "0.5";
+          }
+        });
+      }
+    });
+  }
+</script>

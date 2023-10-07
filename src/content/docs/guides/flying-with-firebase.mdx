@@ -1,0 +1,206 @@
+---
+title: Flying 🚀 with Firebase
+description: Using cloud firestore and deploying with firebase
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import Highlight from '../../../directives/highlight.astro';
+
+Now that we have an amazing application created, we will use Firebase for working with a database, and to host our application.
+The final application is deployed at the moment here (link to be added).
+
+## Setup Firebase
+
+Start with creating a firebase project at [https://console.firebase.google.com](https://console.firebase.google.com). The setup process is a breeze.
+
+### Enable Firestore Database
+
+From the left menu, click `Build` and the `Firestore Database` to go to the database dashboard. Click the `Create Database` button and start the database in `test mode`.
+
+:::note
+You can change the firestore rules to `production` settings when you are releasing your applications to end-users.
+:::
+
+Choose the Firestore location and we're good to go.
+
+## Set up Hosting
+
+From the left menu, click `Build` and the `Hosting` to go to the hosting dashboard. Click the `Get started` to start the process.
+
+The process will tell you to run `npm install -g firebase-tools`. You can open your terminal (being in any folder) and run this command. 
+
+After that, sign into your google account using `firebase login`. **You don't ❌ need to** run `firebase init` or `firebase deploy`. We'll handle that later in the process.
+
+## Add `@angular/fire` to the project
+
+Since we have an official node package for firebase from the Angular team, we will use it as it works seamlessly with Angular (almost). 
+
+The version of `@angular/fire` (v7.6.1) at the time of writing this workshop does not work with Standalone components. So we will have to do a quick work around. Start by creating an angular module as follows:
+
+```bash
+ng g m app --path src
+```
+
+Now run the following command to add `@angular/fire` to our Angular application:
+```bash
+ng add @angular/fire
+```
+
+When asked, choose both `ng deploy --hosting` and `Firestore` as features to use as follows:
+```bash
+◉ ng deploy -- hosting
+◯ Authentication
+◉ Firestore
+```
+
+Choose your account that's already logged in. Then choose the application you just created at https://console.firebase.google.com. In our case, that should probably be `ng-flight-scanner`. It should also show an existing firebase site to choose for hosting, choose that. 
+
+When it asks for an app, if you don't see any name, just select `CREATE NEW APP` and give it the name `ng-flight-scanner-web`.
+
+You should see the following output at the end of this process:
+
+```bash
+CREATE src/environments/environment.ts (359 bytes)
+CREATE .firebaserc (227 bytes)
+UPDATE .gitignore (602 bytes)
+UPDATE src/app/app.module.ts (502 bytes)
+UPDATE angular.json (3322 bytes)
+UPDATE firebase.json (122 bytes)
+```
+
+Now, since the `app.module.ts` was a workaround, we need to add AngularFire properly in our application. To do so, we will update our `app.config.ts` file as follows:
+
+<Tabs>
+  <TabItem label="app.config.ts">
+  ```ts
+  hlconfig 1,5-7,13-16
+  import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+  import { provideRouter } from '@angular/router';
+  import { provideHttpClient, withFetch } from '@angular/common/http'; 
+  import { routes } from './app.routes';
+  import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+  import { environment } from 'src/environments/environment';
+  import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+
+  export const appConfig: ApplicationConfig = {
+    providers: [
+      provideRouter(routes),
+      provideHttpClient(withFetch()),
+      importProvidersFrom(
+        provideFirebaseApp(() => initializeApp(environment.firebase)),
+        provideFirestore(() => getFirestore())
+      )
+    ]
+  };
+
+  ```
+  </TabItem>
+</Tabs>
+
+:::tip
+Note that we're using `environment.firebase` as an argument to the `initializeApp` method. If you go to the `environment.ts` file, you should be able to see the entire firebase configuration. Ideally, this should not be pushed to github or any public repostory and should rather be defined in an environment variable. For the sake of keeping this workshop simpler, we're not covering it today.
+:::
+
+You might see the follwing error on console. This is due to an incompatible `rxfire` version at the moment.
+```bash
+Error: node_modules/rxfire/firestore/lite/interfaces.d.ts:8:29 - error TS2314: Generic type 'AggregateQuerySnapshot<T>' requires 1 type argument(s).
+
+ 8 export type CountSnapshot = lite.AggregateQuerySnapshot<{
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 9     count: lite.AggregateField<number>;
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10 }, any, DocumentData>;
+   ~~~~~~~~~~~~~~~~~~~~~
+
+** Angular Live Development Server is listening on localhost:4200, open your browser on http://localhost:4200/ **
+
+✖ Failed to compile.
+```
+
+To fix this, run this command from a terminal in your project:
+```bash
+npm install rxfire@6.0.4 firebase@9.23.0
+```
+
+This will resolve the issue and our app should be compiled successfully. Great!
+
+You can now delete ❌ the `app.module.ts` since we don't need it anymore.
+
+## Favorite Flights with Firestore
+
+We will use Firebase's Firestore database to mark flights as favorite or not. Let's start by creating a component for the page. We will also update the routes to add the route and the header to add the link to the route as well.
+
+```bash
+ng g c favorite-flights
+```
+
+<Tabs>
+  <TabItem label="app.routes.ts">
+  ```ts
+  hlconfig 15-21
+  import { Routes } from '@angular/router';
+
+  export const routes: Routes = [{
+    path: 'home',
+    loadComponent: async () => {
+      const mod = await import('./home/home.component');
+      return mod.HomeComponent;
+    }
+  }, {
+    path: 'about',
+    loadComponent: async () => {
+      const mod = await import('./about/about.component');
+      return mod.AboutComponent;
+    }
+  }, {
+    path: 'favorites',
+    loadComponent: async () => {
+      const mod = await import('./favorite-flights/favorite-flights.component');
+      return mod.FavoriteFlightsComponent;
+    }
+  }, {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'home'
+  }];
+
+  ```
+  </TabItem>
+  <TabItem label="header.component.html">
+  ```html
+  hlconfig 8
+  <header>
+    <div>
+      <div>
+      <!-- leave everything as it is -->
+        <div class="flex gap-4 items-center text-slate-900 dark:text-white">
+          <a class="hover:underline hover:underline-offset-4 hover:text-slate-600 dark:hover:text-slate-500" routerLink="/home">Home</a>
+          <a class="hover:underline hover:underline-offset-4 hover:text-slate-600 dark:hover:text-slate-500" routerLink="/about">About</a>
+          <a class="hover:underline hover:underline-offset-4 hover:text-slate-600 dark:hover:text-slate-500" routerLink="/favorites">Favorites</a>
+        </div>
+      </div>
+    </div>
+  </header>
+  ```
+  </TabItem>
+</Tabs>
+
+You should be able to see the Favorite Flights link in the header and should be able to navigate to it. Let's add some code to in the home component to mark flights as favorite.
+
+### Marking flights as favorite
+
+To mark the flights as favorite or not, we will use Firestore to just keep the IDs of the favorite flights since we don't want to duplicate the flights data.
+This is how the psuedo code looks like for the favorite flights functionality:
+```text
+- Get all favorite flights from firestore
+-- create an `favoriteFlights` object (key - value pair) locally to store those IDs for easy access
+- For each filtered flight component on the screen, see if the `favoriteFlights` object contains the flight's IDs
+-- If it does contain the flight ID, show a heart icon on the right side of the flight card to indicate it as favorite.
+```
+
+<Tabs>
+  <TabItem label="home.component.ts">
+  </TabItem>
+</Tabs>
+
+
+<Highlight />
