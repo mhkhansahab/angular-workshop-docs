@@ -18,20 +18,20 @@ export default defineConfig({
           label: "Guides",
           items: [
             // Each item here is one entry in the navigation menu.
-            { label: "Angular CLI", link: `${baseUrl}/guides/angular-cli/` },
-            { label: "Set up Tailwind CSS", link: `${baseUrl}/guides/tailwind-css/` },
-            { label: "Angular Routing", link: `${baseUrl}/guides/routing/` },
+            { label: "Angular CLI", link: `${baseUrl}guides/angular-cli/` },
+            { label: "Set up Tailwind CSS", link: `${baseUrl}guides/tailwind-css/` },
+            { label: "Angular Routing", link: `${baseUrl}guides/routing/` },
             {
               label: "API calls in Angular",
-              link: `${baseUrl}/guides/api-calls-in-angular/`,
+              link: `${baseUrl}guides/api-calls-in-angular/`,
             },
             {
               label: "Angular Signals",
-              link: `${baseUrl}/guides/angular-signals/`,
+              link: `${baseUrl}guides/angular-signals/`,
             },
             {
               label: "Firebase: Firestore & Hosting",
-              link: `${baseUrl}/guides/flying-with-firebase/`,
+              link: `${baseUrl}guides/flying-with-firebase/`,
             },
           ],
         },

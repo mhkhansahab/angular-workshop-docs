@@ -1,5 +1,16 @@
 # Workshop: Angular - Zero to Hero
 
+## Start the workshop
+
+![QR Code](src/assets/ng-workshop-qr.png)
+
+## Give feedback about the workshop
+
+![QR Code](src/assets/ng-workshop-feedback-qr.png)
+
+
+## Developing Locally
+
 ```
 git clone https://github.com/DevSlam-2023-Angular/angular-workshop-docs
 ```
