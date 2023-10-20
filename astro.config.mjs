@@ -3,6 +3,8 @@ import starlight from "@astrojs/starlight";
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://github.com/DevSlam-2023-Angular',
+  base: '/angular-workshop-docs',
   integrations: [
     starlight({
       title: "Angular - Zero to Hero",
