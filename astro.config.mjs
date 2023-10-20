@@ -11,7 +11,7 @@ export default defineConfig({
     starlight({
       title: "Angular - Zero to Hero",
       social: {
-        github: "https://github.com/withastro/starlight",
+        github: "https://github.com/DevSlam-2023-Angular/angular-workshop-docs",
       },
       sidebar: [
         {
