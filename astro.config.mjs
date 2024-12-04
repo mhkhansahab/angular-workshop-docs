@@ -21,6 +21,7 @@ export default defineConfig({
             { label: "Angular CLI", link: `${baseUrl}guides/angular-cli/` },
             { label: "Set up Tailwind CSS", link: `${baseUrl}guides/tailwind-css/` },
             { label: "Create Product Listing", link: `${baseUrl}guides/product-listing/` },
+            { label: "Categorize Product Listing", link: `${baseUrl}guides/categorize-listing/` },
             {
               label: "API calls in Angular",
               link: `${baseUrl}guides/api-calls-in-angular/`,

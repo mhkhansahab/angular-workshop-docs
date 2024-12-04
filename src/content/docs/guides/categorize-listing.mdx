@@ -1,0 +1,173 @@
+---
+title: Categorize Product Listing
+description: Categorize product listing using Signal
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import Highlight from "../../../directives/highlight.astro";
+
+## Add Mock Categories
+
+Lets add some mock categories in 'mock-data.ts' file inside the 'src/app/static' folder.
+
+<Tabs>
+<TabItem label="src/app/static/mock-data.ts">
+```ts
+import { IProduct } from '../shared/interfaces/product.interface';
+
+export const categories: string[] = [
+  'all',
+  'beauty',
+  'fragrances',
+  'furniture',
+  'groceries',
+];
+
+export const products: IProduct[] = [
+  ...
+]
+
+````
+</TabItem>
+</Tabs>
+
+## Create Signal for categories
+
+`categories` contains all categories.\
+`selectedCategory` is a signal that contains the currently selected category.
+`getProductsByCategory` is a method that will filter the products based on the selected category.
+`getSelectedCategory` is a method that will return the currently selected category but as a readonly signal.
+
+<Tabs>
+  <TabItem label="home.component.ts">
+  ```ts
+  hlconfig 2,10,11,14-25
+import { Injectable, signal } from '@angular/core';
+import { products, categories /* 👈🏽 add this */ } from '../../static/mock-data';
+import { IProduct } from '../interfaces/product.interface';
+
+@Injectable({
+  providedIn: 'root',
+})
+
+export class ProductService {
+  categories: string[] = categories; /* 👈🏽 add this */
+  private selectedCategory = signal<string>('all'); /* 👈🏽 add this */
+  private selectedProducts = signal<IProduct[]>(products);
+
+  getProductsByCategory(category: string) { /* 👈🏽 add this */
+    const filteredProducts =
+      category === 'all'
+        ? products
+        : products.filter((product) => product.category === category);
+    this.selectedCategory.set(category);
+    this.selectedProducts.set(filteredProducts);
+  }
+
+  getSelectedCategory() { /* 👈🏽 add this */
+    return this.selectedCategory.asReadonly();
+  }
+
+  getSelectedProducts() {
+      return this.selectedProducts.asReadonly();
+  }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Listening to signal inside component
+
+<Tabs>
+<TabItem label="src/app/app.component.ts">
+```ts
+hlconfig 13-21
+import { Component, inject } from '@angular/core';
+import { ProductService } from './shared/services/product.service';
+
+@Component({
+selector: 'app-root',
+templateUrl: './app.component.html',
+styleUrl: './app.component.scss'
+})
+export class AppComponent {
+  productService = inject(ProductService);
+
+  selectedProducts = this.productService.getSelectedProducts();
+  selectedCategory = this.productService.getSelectedCategory(); /* 👈🏽 add this */
+
+  getProductsByCategory(category: string) { /* 👈🏽 add this */
+    this.productService.getProductsByCategory(category);
+  }
+
+  isSelected(category: string) { /* 👈🏽 add this */
+    return category === this.selectedCategory();
+  }
+}
+
+````
+</TabItem>
+</Tabs>
+
+## Categories Tabs
+
+Show category tabs and show products based on the selected category
+
+<Tabs>
+<TabItem label="src/app/app.component.html">
+```html
+hlconfig 6-17
+<div
+  class="container min-h-screen m-auto grid grid-flow-col grid-cols-[75%_25%]"
+>
+  <div class="px-4">
+
+    <div class="flex items-center py-4 gap-4"> /* 👈🏽 add this */
+      @for(category of productService.categories; track category){
+      <div
+        [ngClass]="{ 'bg-black text-white': isSelected(category) }"
+        class="font-semibold text-black py-2 px-4 rounded cursor-pointer border border-blue-100 hover:border-blue-300"
+        (click)="getProductsByCategory(category)"
+      >
+        {{ category }}
+      </div>
+      }
+    </div>
+
+    <div class="grid grid-cols-3 py-4 gap-4">
+      @for(product of selectedProducts(); track product.id){
+        <div
+        class="font-semibold border border-blue-100 hover:border-blue-300 text-black p-4 rounded"
+      >
+        <img class="w-full" [src]="product.thumbnail" [alt]="product.title" />
+        <div class="text-lg">
+          <div>{{ product.title }}</div>
+          <p class="text-xs">{{ product.description }}</p>
+          <div class="flex justify-between items-center mt-4">
+            <button
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Add to cart
+            </button>
+            <div>{{ product.price }}$</div>
+          </div>
+        </div>
+      </div>
+      } @empty {
+      <div class="text-center font-bold">No product available</div>
+      }
+    </div>
+  </div>
+
+  <div></div>
+</div>
+
+````
+
+</TabItem>
+</Tabs>
+
+Hurrah!! you have created a product listing using Signal
+
+<Highlight />
