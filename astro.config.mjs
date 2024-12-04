@@ -9,9 +9,9 @@ export default defineConfig({
   base: '/angular-workshop-docs',
   integrations: [
     starlight({
-      title: "Angular - Zero to Hero",
+      title: "Angular Signals",
       social: {
-        github: "https://github.com/DevSlam-2023-Angular/angular-workshop-docs",
+        github: "https://github.com/mhkhansahab/angular-workshop-docs",
       },
       sidebar: [
         {
@@ -20,7 +20,7 @@ export default defineConfig({
             // Each item here is one entry in the navigation menu.
             { label: "Angular CLI", link: `${baseUrl}guides/angular-cli/` },
             { label: "Set up Tailwind CSS", link: `${baseUrl}guides/tailwind-css/` },
-            { label: "Angular Routing", link: `${baseUrl}guides/routing/` },
+            { label: "Create Product Listing", link: `${baseUrl}guides/product-listing/` },
             {
               label: "API calls in Angular",
               link: `${baseUrl}guides/api-calls-in-angular/`,

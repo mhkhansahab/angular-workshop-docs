@@ -1,4 +1,4 @@
-# Workshop: Angular - Zero to Hero
+# Workshop: Angular Signals
 
 ## Start the workshop
 
