@@ -6,12 +6,12 @@ description: Create cart using Signal
 import { Tabs, TabItem } from "@astrojs/starlight/components";
 import Highlight from "../../../directives/highlight.astro";
 
-## Creating Cart Service
+## Create Cart Service
 
 Write the following command in the terminal.
 
 ```bash
-ng g s services/cart
+ng generate service services/cart
 ```
 
 ## Add Cart Interface
@@ -24,14 +24,14 @@ We will create an `interface` for the data type we're going to use. I.e. for car
 import { IProduct } from "./product.interface";
 
 export interface ICartItem extends IProduct {
-  quantity: number;
+    quantity: number;
 }
 
 ````
 </TabItem>
 </Tabs>
 
-## Now let's create Cart Service
+## Add logic inside cart service
 
 You have created `Cart Service` by running the above command. Now, let's add the following code inside the `cart.service.ts` file.
 
@@ -100,7 +100,7 @@ export class CartService {
 Write the following command in the terminal, and add the following code inside the `cart.component.ts` file.
 
 ```bash
-ng g c components/cart
+ng generate component components/cart
 ```
 
 `cartItems` is a signal that holds the cart items.\

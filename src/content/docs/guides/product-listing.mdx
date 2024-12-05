@@ -12,7 +12,7 @@ To manage data in our Angular application, we will create an Angular Service bec
 We will create our first Angular service by running the following command in the terminal.
 
 ```bash
-ng g s services/product
+ng generate service services/product
 ```
 
 ## Before we start, let's write the interface first
@@ -378,7 +378,7 @@ Product Card Component is a reusable component that can be used to display a pro
 
 
 ```bash
-ng g c components/product-card
+ng generate component components/product-card
 ```
 
 Now let's update the `product-card.component.ts` and `product-card.component.html` file.
@@ -395,8 +395,9 @@ imports: [],
 templateUrl: './product-card.component.html',
 styleUrl: './product-card.component.scss'
 })
+
 export class ProductCardComponent {
-product = input.required<IProduct>();
+  product = input.required<IProduct>();
 }
 
 ````
@@ -445,10 +446,11 @@ imports: [CommonModule, ProductCardComponent],
 templateUrl: './app.component.html',
 styleUrl: './app.component.scss'
 })
-export class AppComponent {
-productService = inject(ProductService);
 
-products = this.productService.getProducts();
+export class AppComponent {
+  productService = inject(ProductService);
+
+  products = this.productService.getProducts();
 }
 
 ````

@@ -9,7 +9,7 @@ Before we start, check your node version by running the following command.
 node --version
 ```
 
-Now let's start by creating a new Angular application using the Angular CLI. First, let's install the Angular CLI globally in our machine so we can use it with ease.
+Now let's start by creating a new Angular application using the Angular CLI. First, install the Angular CLI globally in our machine so we can use it with ease.
 
 ```bash
 npm install -g @angular/cli

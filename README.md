@@ -12,11 +12,11 @@
 ## Developing Locally
 
 ```
-git clone https://github.com/DevSlam-2023-Angular/angular-workshop-docs
+git clone https://github.com/mhkhansahab/angular-workshop-docs
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/DevSlam-2023-Angular/angular-workshop-docs)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/DevSlam-2023-Angular/angular-workshop-docs)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/mhkhansahab/angular-workshop-docs)
+[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/mhkhansahab/angular-workshop-docs)
 
 ## 🚀 Project Structure
 

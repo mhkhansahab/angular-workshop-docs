@@ -5,7 +5,7 @@ const baseUrl = import.meta.env.BASE_URL;
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://github.com/DevSlam-2023-Angular",
+  site: "https://github.com/mhkhansahab",
   base: "/angular-workshop-docs",
   integrations: [
     starlight({
