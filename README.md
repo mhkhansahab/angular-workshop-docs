@@ -4,10 +4,6 @@
 
 ![QR Code](src/assets/ng-workshop-qr.png)
 
-## Give feedback about the workshop
-
-![QR Code](src/assets/ng-workshop-feedback-qr.png)
-
 
 ## Developing Locally
 
