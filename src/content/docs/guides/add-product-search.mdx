@@ -1,0 +1,163 @@
+---
+title: Add Product Search
+description: Add product search using Signal, Model and Computation
+---
+
+Let's create header component using the Angular CLI, that will contains the search bar.
+
+```bash
+ng g c components/header
+```
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import Highlight from "../../../directives/highlight.astro";
+
+## Create Model Signal for search string
+
+Create `searchString` Model Signal and add `FormsModule` in the imports for using `ngModel`.
+
+<Tabs>
+<TabItem label="header.component.ts">
+```ts
+import { Component, model } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+selector: 'app-header',
+imports: [FormsModule],
+templateUrl: './header.component.html',
+styleUrl: './header.component.scss',
+})
+export class HeaderComponent {
+searchString = model.required<string>();
+}
+
+````
+</TabItem>
+</Tabs>
+
+## Create template for the header
+
+Add the following template, make sure to add `ngModel` to bind the `searchString` model signal with the input.
+
+
+<Tabs>
+<TabItem label="header.component.html">
+```html
+<div class="flex items-center justify-between py-4">
+  <div class="font-bold text-3xl">Shopi</div> /* 👈🏽 add a cool name for your app :) */
+  <input
+    placeholder="Search"
+    class="border border-blue-100 hover:border-blue-300 rounded py-2 px-4 outline-none"
+    [(ngModel)]="searchString" /* 👈🏽 here we bind the searchString with the input */
+  />
+</div>
+
+```
+</TabItem>
+</Tabs>
+
+## Add some logic to filter products
+
+`searchString` a signal that will contain the value output by the header's searchString model.\
+`filteredProducts` is a computed signal that will filter the products based on the search string.
+
+<Tabs>
+  <TabItem label="app.component.ts">
+  ```ts
+  hlconfig 1,4,9,14,29-35
+import { Component, inject, computed, signal /* 👈🏽 add this */ } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ProductService } from './services/product.service';
+import { HeaderComponent } from './components/header/header.component'; /* 👈🏽 add this */
+import { ProductCardComponent } from './components/product-card/product-card.component';
+
+@Component({
+selector: 'app-root',
+imports: [CommonModule, ProductCardComponent, HeaderComponent /* 👈🏽 add this */],
+templateUrl: './app.component.html',
+styleUrl: './app.component.scss'
+})
+export class AppComponent {
+  searchString = signal<string>(''); /* 👈🏽 add this */
+
+  productService = inject(ProductService);
+
+  products = this.productService.getProducts();
+  selectedCategory = this.productService.getSelectedCategory();
+
+  getProductsByCategory(category: string) {
+    this.productService.getProductsByCategory(category);
+  }
+
+  isSelected(category: string) {
+    return category === this.selectedCategory();
+  }
+
+  filteredProducts = computed(() => { /* 👈🏽 add this */
+    return this.products().filter((product) => {
+      return product.title
+        .toLowerCase()
+        .includes(this.searchString().toLowerCase());
+    });
+  });
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Add header to the app template
+
+Add `app-header` to the app template, make sure to add `[(searchString)]="searchString"` to bind the `searchString` signal with the header's `searchString` model.
+
+Update `products()` to `filteredProducts()`.
+
+<Tabs>
+<TabItem label="app.component.html">
+```html
+hlconfig 6,21
+<div
+  class="container min-h-screen m-auto grid grid-flow-col grid-cols-[75%_25%]"
+>
+  <div class="px-4">
+
+    <app-header [(searchString)]="searchString"></app-header> /* 👈🏽 add this */
+
+    <div class="flex items-center py-4 gap-4">
+      @for(category of productService.categories; track category){
+      <div
+        [ngClass]="{ 'bg-black text-white': isSelected(category) }"
+        class="font-semibold text-black py-2 px-4 rounded cursor-pointer border border-blue-100 hover:border-blue-300"
+        (click)="getProductsByCategory(category)"
+      >
+        {{ category }}
+      </div>
+      }
+    </div>
+
+    <div class="grid grid-cols-3 py-4 gap-4">
+      @for(product of filteredProducts(); track product.id){  /* 👈🏽 update this line */
+        <app-product-card
+          [product]="product"
+        ></app-product-card>
+      } @empty {
+      <div class="text-center font-bold">No product available</div>
+      }
+    </div>
+
+  </div>
+
+  <!-- <app-cart></app-cart> -->
+</div>
+
+
+   ...
+```
+
+</TabItem>
+</Tabs>
+
+Yippee!!! one more milestone achieved :)
+
+<Highlight />

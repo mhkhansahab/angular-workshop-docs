@@ -2,11 +2,12 @@
 title: Product Listing
 description: Create product listing using Signal
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
 
 ## Creating our first Angular Service
 
-To manage data in our Angular application, we will create an Angular Service because this is a prominent practice to keep the HTTP calls or State Management inside Angular Services.
+To manage data in our Angular application, we will create an Angular Service because this is a prominent practice to keep the HTTP calls and it's state inside Angular Services.
 
 We will create our first Angular service by running the following command in the terminal.
 
@@ -14,12 +15,12 @@ We will create our first Angular service by running the following command in the
 ng g s services/product
 ```
 
-## Let's write the interface first
+## Before we start, let's write the interface first
 
-We will create an `interface` for the data type we're going to use. I.e. for products. Let's create a new file inside our `src/app/shared/interfaces` folder and name it `product.interface.ts`. Then add the following code to it:
+We will create an `interface` for the data type we're going to use. i.e. for products. Let's create a new file inside our `src/app/interfaces` folder and name it `product.interface.ts`. Then add the following code to it:
 
 <Tabs>
-  <TabItem label="src/app/shared/interfaces/product.interface.ts">
+  <TabItem label="product.interface.ts">
   ```ts
   export interface IProduct {
     id: number;
@@ -30,51 +31,49 @@ We will create an `interface` for the data type we're going to use. I.e. for pro
     thumbnail: string;
 }
 
-  ```
-  </TabItem>
+````
+</TabItem>
 </Tabs>
 
-## Create first Signal inside Product Service
+## First Signal inside Product Service
 
-This creates the `Product Service` in the above mentioned folder. Now, let's create our first signal that will handle the products state:
+Now, add the following code to the `product.service.ts` file.
+
+`products` is a signal that will contain the products data.\
+`getProducts` is a method that will return the products data.
 
 <Tabs>
-  <TabItem label="src/app/shared/services/product.service.ts">
-  ```ts
+<TabItem label="product.service.ts">
+```ts
 import { Injectable, signal } from '@angular/core';
-import { products } from '../../static/mock-data';
+import { products } from '../static/mock-data';
 import { IProduct } from '../interfaces/product.interface';
 
 @Injectable({
-  providedIn: 'root',
+providedIn: 'root',
 })
 
 export class ProductService {
-    private selectedProducts = signal<IProduct[]>(products);
+  private products = signal<IProduct[]>(products);
 
-    /**
-     * Gets the currently selected products.
-     *
-     * This is a signal that returns the selected products as a readonly array.
-     * The selected products are the products that are currently filtered by the selected category.
-     *
-     * @returns A readonly signal of the selected products.
-     */
-    getSelectedProducts() {
-        return this.selectedProducts.asReadonly();
-    }
+  getProducts() {
+      return this.products.asReadonly();
+  }
 }
-  ```
+````
+
   </TabItem>
 </Tabs>
 
 ## Add Mock Data
 
-Getting error in Product Service? lets create a 'mock-data.ts' file inside the 'src/app/static' folder, that will contain the products data
+Getting error in Product Service? lets create a `mock-data.ts` file inside the `src/app/static` folder, that will contain the products data.
 
 <Tabs>
-<TabItem label="src/app/static/mock-data.ts">
+<TabItem label="mock-data.ts">
 ```ts
+import { IProduct } from '../interfaces/product.interface';
+
 export const products: IProduct[] = [
   {
     id: 1,
@@ -371,71 +370,118 @@ export const products: IProduct[] = [
 </TabItem>
 </Tabs>
 
-## Injecting the service, and getting the data
+## Create Product Card Component
 
-Now we can use the service to get the data, inside the 'app.component.ts' file.
+Run the following command to create product card component using the Angular CLI.
+
+Product Card Component is a reusable component that can be used to display a product details and add to cart button.
+
+
+```bash
+ng g c components/product-card
+```
+
+Now let's update the `product-card.component.ts` and `product-card.component.html` file.
 
 <Tabs>
-<TabItem label="src/app/app.component.ts">
+<TabItem label="product-card.component.ts">
 ```ts
-import { Component, inject } from '@angular/core';
-import { ProductService } from './shared/services/product.service';
+import { Component, input, output } from '@angular/core';
+import { IProduct } from '../../interfaces/product.interface';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+selector: 'app-product-card',
+imports: [],
+templateUrl: './product-card.component.html',
+styleUrl: './product-card.component.scss'
 })
-export class AppComponent {
-  productService = inject(ProductService);
-  
-  selectedProducts = this.productService.getSelectedProducts();
+export class ProductCardComponent {
+product = input.required<IProduct>();
 }
-```
+
+````
+</TabItem>
+
+<TabItem label="product-card.component.html">
+```html
+<div
+  class="font-semibold border border-blue-100 hover:border-blue-300 text-black p-4 rounded"
+>
+  <img class="w-full" [src]="product().thumbnail" [alt]="product().title" />
+  <div class="text-lg">
+    <div>{{ product().title }}</div>
+    <p class="text-xs">{{ product().description }}</p>
+    <div class="flex justify-between items-center mt-4">
+      <button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Add to cart
+      </button>
+      <div>{{ product().price }}$</div>
+    </div>
+  </div>
+</div>
+
+````
+
 </TabItem>
 </Tabs>
 
-## Rendering the products
+## Inject Product Service, and render the products
 
-Now we can use the data in the template.
+Now we can use the service to get the data, inside the `app.component.ts` file. And add the HTML inside the `app.component.html` to display the products.
 
 <Tabs>
-<TabItem label="src/app/app.component.html">
+<TabItem label="app.component.ts">
+```ts
+import { Component, inject } from '@angular/core';
+import { ProductService } from './services/product.service';
+import { CommonModule } from '@angular/common';
+import { ProductCardComponent } from './components/product-card/product-card.component';
+
+@Component({
+selector: 'app-root',
+imports: [CommonModule, ProductCardComponent],
+templateUrl: './app.component.html',
+styleUrl: './app.component.scss'
+})
+export class AppComponent {
+productService = inject(ProductService);
+
+products = this.productService.getProducts();
+}
+
+````
+
+</TabItem>
+
+<TabItem label="app.component.html">
 ```html
 <div
   class="container min-h-screen m-auto grid grid-flow-col grid-cols-[75%_25%]"
 >
   <div class="px-4">
-    
+
+    <!-- <app-header></app-header> -->
+
     <div class="grid grid-cols-3 py-4 gap-4">
-      @for(product of selectedProducts(); track product.id){
-        <div
-        class="font-semibold border border-blue-100 hover:border-blue-300 text-black p-4 rounded"
-      >
-        <img class="w-full" [src]="product.thumbnail" [alt]="product.title" />
-        <div class="text-lg">
-          <div>{{ product.title }}</div>
-          <p class="text-xs">{{ product.description }}</p>
-          <div class="flex justify-between items-center mt-4">
-            <button
-              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Add to cart
-            </button>
-            <div>{{ product.price }}$</div>
-          </div>
-        </div>
-      </div>
+      @for(product of products(); track product.id){
+        <app-product-card
+          [product]="product"
+        ></app-product-card>
       } @empty {
       <div class="text-center font-bold">No product available</div>
       }
     </div>
+
   </div>
 
-  <div></div>
+  <!-- <app-cart></app-cart> -->
+
 </div>
 
 ```
+
 </TabItem>
 </Tabs>
 

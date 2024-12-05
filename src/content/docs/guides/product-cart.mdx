@@ -1,0 +1,372 @@
+---
+title: Product Cart
+description: Create cart using Signal
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import Highlight from "../../../directives/highlight.astro";
+
+## Creating Cart Service
+
+Write the following command in the terminal.
+
+```bash
+ng g s services/cart
+```
+
+## Add Cart Interface
+
+We will create an `interface` for the data type we're going to use. I.e. for cart. Let's create a new file inside our `src/app/interfaces` folder and name it `cart.interface.ts`. Then add the following code to it:
+
+<Tabs>
+  <TabItem label="cart.interface.ts">
+  ```ts
+import { IProduct } from "./product.interface";
+
+export interface ICartItem extends IProduct {
+  quantity: number;
+}
+
+````
+</TabItem>
+</Tabs>
+
+## Now let's create Cart Service
+
+You have created `Cart Service` by running the above command. Now, let's add the following code inside the `cart.service.ts` file.
+
+`cartItems` is a signal that holds the cart items.\
+`addToCart` is a method that adds an item to the cart.\
+`removeFromCart` is a method that removes an item from the cart.\
+`clearCart` is a method that clears the cart.\
+`getCartItems` is a method that returns the cart items.\
+
+<Tabs>
+<TabItem label="cart.service.ts">
+```ts
+import { Injectable, signal } from '@angular/core';
+import { IProduct } from '../interfaces/product.interface';
+import { ICartItem } from '../interfaces/cart.interface';
+
+@Injectable({
+  providedIn: 'root',
+})
+
+export class CartService {
+  private cartItems = signal<ICartItem[]>([]);
+
+  addToCart(item: IProduct | ICartItem) {
+    this.cartItems.update((cart) => {
+      const updatedCart = cart.map((cartItem) =>
+        cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
+      );
+      const foundItem = updatedCart.find((cartItem) => cartItem.id === item.id);
+      if (!foundItem) {
+        updatedCart.push({ ...item, quantity: 1 });
+      }
+      return updatedCart;
+    });
+  }
+
+  removeFromCart(item: IProduct | ICartItem) {
+    this.cartItems.update((cart) =>
+      cart
+        .map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity - 1 }
+            : cartItem
+        )
+        .filter((cartItem) => cartItem.quantity > 0)
+    );
+  }
+
+  clearCart() {
+    this.cartItems.set([]);
+  }
+
+  getCartItems() {
+    return this.cartItems.asReadonly();
+  }
+}
+
+````
+
+  </TabItem>
+</Tabs>
+
+## Create Cart Component
+
+
+Write the following command in the terminal, and add the following code inside the `cart.component.ts` file.
+
+```bash
+ng g c components/cart
+```
+
+`cartItems` is a signal that holds the cart items.\
+`totalItems` is a computed signal that returns the total number of items in the cart.\
+`subtotalPrice` is a computed signal that returns the subtotal price of the cart.\
+`calculatedVAT` is a computed signal that returns the calculated VAT of the cart.\
+`deliveryFee` is a computed signal that returns the delivery fee of the cart.\
+`handleAddToCart` is a method that adds an item to the cart.\
+`handleRemoveFromCart` is a method that removes an item from the cart.
+
+<Tabs>
+<TabItem label="cart.component.ts">
+```ts
+import { Component, computed, inject } from '@angular/core';
+import { CartService } from '../../services/cart.service';
+import { DecimalPipe } from '@angular/common';
+import { ICartItem } from '../../interfaces/cart.interface';
+
+@Component({
+selector: 'app-cart',
+imports: [DecimalPipe],
+templateUrl: './cart.component.html',
+styleUrl: './cart.component.scss',
+})
+export class CartComponent {
+  cartService = inject(CartService);
+
+  cartItems = this.cartService.getCartItems();
+
+  totalItems = computed(() => {
+    return this.cartItems().reduce((total, item) => {
+      return total + item.quantity;
+    }, 0);
+  });
+
+  subtotalPrice = computed(() => {
+    return this.cartItems().reduce((total, item) => {
+      return total + item.quantity * item.price;
+    }, 0);
+  });
+
+  calculatedVAT = computed(() => {
+    return this.subtotalPrice() * (15 / 100);
+  });
+
+  deliveryFee = computed(() => {
+    return this.subtotalPrice() > 1000 ? 0 : 70;
+  });
+
+  handleAddToCart(cartItem: ICartItem) {
+    this.cartService.addToCart(cartItem);
+  }
+
+  handleRemoveFromCart(cartItem: ICartItem) {
+    this.cartService.removeFromCart(cartItem);
+  }
+}
+
+````
+</TabItem>
+</Tabs>
+
+
+## Add Cart Template
+
+Paste the following code inside `cart.component.html`.
+
+<Tabs>
+<TabItem label="cart.component.html">
+```html
+<div class="min-h-screen h-full border-l border-blue-100 text-black py-4 px-4">
+  <div class="flex justify-between mb-2">
+    <div>Cart</div>
+    <div>{{ totalItems() }}</div>
+  </div>
+  <hr />
+  <div class="mt-4">
+    @for(item of cartItems(); track item.id){
+    <div class="my-2 border rounded p-2">
+      <div class="">
+        {{ item.title }} x {{ item.quantity }}
+      </div>
+      <hr/>
+      <div class="flex justify-between mt-2">
+        <div>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded mr-4" (click)="handleRemoveFromCart(item)">-</button>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded" (click)="handleAddToCart(item)">+</button>
+        </div>
+        {{ item.price * item.quantity | number : "1.2-2" }}$
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (cartItems().length) {
+  <div class="my-4">
+    <hr />
+    <div class="flex justify-between">
+      Subtotal:
+      <div>{{ subtotalPrice() | number : "1.2-2" }}$</div>
+    </div>
+    <div class="flex justify-between">
+      Estimated VAT:
+      <div>{{ calculatedVAT() | number : "1.2-2" }}$</div>
+    </div>
+    <div class="flex justify-between">
+      Delivery Fee:
+      <div>{{ deliveryFee() | number : "1.2-2" }}$</div>
+    </div>
+    <div class="flex justify-between">
+      Total:
+      <div>
+        {{
+          subtotalPrice() + calculatedVAT() + deliveryFee() | number : "1.2-2"
+        }}$
+      </div>
+    </div>
+  </div>
+  }
+</div>
+````
+
+</TabItem>
+</Tabs>
+
+## Add Event Handler to Add to Cart Button inside Product Card Component
+
+Now let's update the `product-card.component.ts` and `product-card.component.html` file.
+
+<Tabs>
+<TabItem label="product-card.component.ts">
+```ts
+hlconfig 13-17
+import { Component, input, output } from '@angular/core';
+import { IProduct } from '../../interfaces/product.interface';
+
+@Component({
+selector: 'app-product-card',
+imports: [],
+templateUrl: './product-card.component.html',
+styleUrl: './product-card.component.scss'
+})
+export class ProductCardComponent {
+  product = input.required<IProduct>();
+
+  addToCart = output<IProduct>(); /* 👈🏽 add this */
+
+  handleAddToCart() { /* 👈🏽 add this */
+    this.addToCart.emit(this.product()); 
+  }
+}
+
+````
+</TabItem>
+
+<TabItem label="product-card.component.html">
+```html
+hlconfig 11
+<div
+  class="font-semibold border border-blue-100 hover:border-blue-300 text-black p-4 rounded"
+>
+  <img class="w-full" [src]="product().thumbnail" [alt]="product().title" />
+  <div class="text-lg">
+    <div>{{ product().title }}</div>
+    <p class="text-xs">{{ product().description }}</p>
+    <div class="flex justify-between items-center mt-4">
+      <button
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        (click)="handleAddToCart()" /* 👈🏽 add this */
+      >
+        Add to cart
+      </button>
+      <div>{{ product().price }}$</div>
+    </div>
+  </div>
+</div>
+
+````
+
+</TabItem>
+</Tabs>
+
+## Got Tired? you have come a long way, just add few more lines and you are done
+
+Now we can use the data in the template.
+
+<Tabs>
+<TabItem label="app.component.ts">
+```ts
+hlconfig 6,10,18,40-42
+import { Component, inject, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ProductService } from './services/product.service';
+import { HeaderComponent } from './components/header/header.component';
+import { ProductCardComponent } from './components/product-card/product-card.component';
+import { CartComponent } from './components/cart/cart.component'; /* 👈🏽 add this */
+
+@Component({
+selector: 'app-root',
+imports: [CommonModule, ProductCardComponent, HeaderComponent, CartComponent /* 👈🏽 add this */],
+templateUrl: './app.component.html',
+styleUrl: './app.component.scss'
+})
+export class AppComponent {
+  searchString = signal<string>('');
+
+  productService = inject(ProductService);
+  cartService = inject(CartService); /* 👈🏽 add this */
+
+  products = this.productService.getProducts();
+  selectedCategory = this.productService.getSelectedCategory();
+
+  getProductsByCategory(category: string) {
+    this.productService.getProductsByCategory(category);
+  }
+
+  isSelected(category: string) {
+    return category === this.selectedCategory();
+  }
+
+  filteredProducts = computed(() => {
+    return this.products().filter((product) => {
+      return product.title
+        .toLowerCase()
+        .includes(this.searchString().toLowerCase());
+    });
+  });
+}
+
+  addToCart(product: IProduct) { /* 👈🏽 add this */
+    this.cartService.addToCart(product);
+  }
+}
+````
+
+</TabItem>
+<TabItem label="app.component.html">
+```html
+hlconfig 12,21
+<div
+  class="container min-h-screen m-auto grid grid-flow-col grid-cols-[75%_25%]"
+>
+  <div class="px-4">
+
+    ....
+
+    <div class="grid grid-cols-3 py-4 gap-4">
+      @for(product of products(); track product.id){
+        <app-product-card
+          [product]="product"
+          (addToCart)="addToCart($event)" /* 👈🏽 add this */
+        ></app-product-card>
+      } @empty {
+      <div class="text-center font-bold">No product available</div>
+      }
+    </div>
+
+  </div>
+
+<app-cart></app-cart> /* 👈🏽 uncomment this line */
+
+</div>
+
+````
+
+</TabItem>
+</Tabs>
+
+Hurrah!! You have completed the product cart
