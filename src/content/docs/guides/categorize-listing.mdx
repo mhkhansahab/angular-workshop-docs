@@ -1,0 +1,168 @@
+---
+title: Categorize Product Listing
+description: Categorize product listing using Signal
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+import Highlight from "../../../directives/highlight.astro";
+
+## Add Mock Categories
+
+Lets add some mock categories in `mock-data.ts` file inside the `src/app/static` folder.
+
+<Tabs>
+<TabItem label="mock-data.ts">
+```ts
+hlconfig 3-10
+import { IProduct } from '../interfaces/product.interface';
+
+export const categories: string[] = [ /* 👈🏽 add this */
+  'all',
+  'beauty',
+  'fragrances',
+  'furniture',
+  'groceries',
+];
+
+export const products: IProduct[] = [
+  ...
+]
+
+````
+</TabItem>
+</Tabs>
+
+## Update Product Service for Categories
+
+`categories` contains all categories.\
+`selectedCategory` is a signal that contains the currently selected category.
+`getProductsByCategory` is a method that will filter the products based on the selected category.
+`getSelectedCategory` is a method that will return the currently selected category but as a readonly signal.
+
+<Tabs>
+  <TabItem label="product.service.ts">
+  ```ts
+  hlconfig 2,10,11,14-25
+import { Injectable, signal } from '@angular/core';
+import { products, categories /* 👈🏽 add this */ } from '../static/mock-data';
+import { IProduct } from '../interfaces/product.interface';
+
+@Injectable({
+  providedIn: 'root',
+})
+
+export class ProductService {
+    categories: string[] = categories; /* 👈🏽 add this */
+    private selectedCategory = signal<string>('all'); /* 👈🏽 add this */
+    private products = signal<IProduct[]>(products);
+
+    getProductsByCategory(category: string) { /* 👈🏽 add this */
+      const filteredProducts =
+        category === 'all'
+          ? products
+          : products.filter((product) => product.category === category);
+      this.selectedCategory.set(category);
+      this.products.set(filteredProducts);
+    }
+
+    getSelectedCategory() { /* 👈🏽 add this */
+      return this.selectedCategory.asReadonly();
+    }
+
+    getProducts() {
+        return this.products.asReadonly();
+    }
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## Listening to signal inside component
+
+<Tabs>
+<TabItem label="app.component.ts">
+```ts
+hlconfig 16-24
+import { Component, inject } from '@angular/core';
+import { ProductService } from './services/product.service';
+import { CommonModule } from '@angular/common';
+import { ProductCardComponent } from './components/product-card/product-card.component';
+
+@Component({
+selector: 'app-root',
+imports: [CommonModule, ProductCardComponent],
+templateUrl: './app.component.html',
+styleUrl: './app.component.scss'
+})
+export class AppComponent {
+  productService = inject(ProductService);
+
+  products = this.productService.getProducts();
+  selectedCategory = this.productService.getSelectedCategory(); /* 👈🏽 add this */
+
+  getProductsByCategory(category: string) { /* 👈🏽 add this */
+    this.productService.getProductsByCategory(category);
+  }
+
+  isSelected(category: string) { /* 👈🏽 add this */
+    return category === this.selectedCategory();
+  }
+}
+
+````
+
+</TabItem>
+</Tabs>
+
+## Add Clickable Categories Tabs
+
+Show category tabs and show products based on the selected category
+
+<Tabs>
+<TabItem label="app.component.html">
+```html
+hlconfig 8-19
+<div
+  class="container min-h-screen m-auto grid grid-flow-col grid-cols-[75%_25%]"
+>
+  <div class="px-4">
+
+  <!-- <app-header></app-header> -->
+
+    <div class="flex items-center py-4 gap-4"> /* 👈🏽 add this */
+      @for(category of productService.categories; track category){
+      <div
+        [ngClass]="{ 'bg-black text-white': isSelected(category) }"
+        class="font-semibold text-black py-2 px-4 rounded cursor-pointer border border-blue-100 hover:border-blue-300"
+        (click)="getProductsByCategory(category)"
+      >
+        {{ category }}
+      </div>
+      }
+    </div>
+
+    <div class="grid grid-cols-3 py-4 gap-4">
+      @for(product of products(); track product.id){
+        <app-product-card
+          [product]="product"
+        ></app-product-card>
+      } @empty {
+      <div class="text-center font-bold">No product available</div>
+      }
+    </div>
+
+  </div>
+
+  <!-- <app-cart></app-cart> -->
+
+</div>
+
+```
+
+</TabItem>
+</Tabs>
+
+Well done!! one more milestone achieved
+
+<Highlight />
