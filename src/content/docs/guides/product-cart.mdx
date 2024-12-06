@@ -109,7 +109,8 @@ ng generate component components/cart
 `calculatedVAT` is a computed signal that returns the calculated VAT of the cart.\
 `deliveryFee` is a computed signal that returns the delivery fee of the cart.\
 `handleAddToCart` is a method that adds an item to the cart.\
-`handleRemoveFromCart` is a method that removes an item from the cart.
+`handleRemoveFromCart` is a method that removes an item from the cart.\
+`handlePlaceOrder` is a method that places an order.
 
 <Tabs>
 <TabItem label="cart.component.ts">
@@ -156,6 +157,11 @@ export class CartComponent {
 
   handleRemoveFromCart(cartItem: ICartItem) {
     this.cartService.removeFromCart(cartItem);
+  }
+
+  handlePlaceOrder() {
+    this.cartService.clearCart();
+    window.alert('Your order has been placed!');
   }
 }
 
@@ -219,6 +225,13 @@ Paste the following code inside `cart.component.html`.
       </div>
     </div>
   </div>
+
+  <button
+    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded w-full"
+    (click)="handlePlaceOrder()"
+  >
+    Place Order
+  </button>
   }
 </div>
 ````
